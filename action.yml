@@ -8,6 +8,7 @@ inputs:
 runs:
   using: "composite"
   steps:
+  runs-on: bookingmonster
   - uses: actions/checkout@v3
   - name: Setup .NET
     uses: actions/setup-dotnet@v2
