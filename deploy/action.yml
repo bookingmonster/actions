@@ -12,9 +12,11 @@ runs:
   steps:
     - name: Take application offline
       run: New-Item -Type File -Name app_offline.htm -Path C:/inetpub/wwwroot/${{destfolder}} -Force
+      shell: cmd
     - name: Deploy to IIS
-      run: 
-        Copy-Item c:/drop/@{{sourcefolder}}/* C:/inetpub/wwwroot/${{destfolder}} -Recurse -Force
+      run: Copy-Item c:/drop/@{{sourcefolder}}/* C:/inetpub/wwwroot/${{destfolder}} -Recurse -Force
+      shell: cmd
     - name: Bring the app back online
-      run: Remove-Item C:/inetpub/wwwroot/${{destfolder}}\app_offline.htm    
+      run: Remove-Item C:/inetpub/wwwroot/${{destfolder}}\app_offline.htm
+      shell: cmd
     
