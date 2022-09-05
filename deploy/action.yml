@@ -3,10 +3,10 @@ description: "Build and publish Dotnet 6 web apps"
 
 inputs:
   destfolder:
-    description: "folder under c:\inetpub\wwwroot"
+    description: "folder under c:\\inetpub\\wwwroot"
     required: true
   sourcefolder:
-    description: "name of the sourcefolder undr c:\drop"
+    description: "name of the sourcefolder undr c:\\drop"
 runs:
   using: "composite"
   steps:
