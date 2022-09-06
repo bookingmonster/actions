@@ -20,6 +20,6 @@ runs:
     
   - name: Build
     shell: cmd
-    run: dotnet build --no-restore /nologo /p:PublishProfile=Release /p:PackageLocation="d:\Drop\${{inputs.dropfolder}}" /p:OutDir="D:\Outdir\${{inputs.dropfolder}}" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release"
+    run: dotnet build --no-restore /nologo /p:PublishProfile=Release /p:PackageLocation="d:\Drop\${{inputs.dropfolder}}" /p:DeployOnBuild=true /p:WebPublishMethod=Package /maxcpucount:1 /p:platform="Any CPU"
     
   
