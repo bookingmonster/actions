@@ -15,20 +15,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Stop site
-      run: c:\windows\system32\inetsrv\appcmd stop site ${{inputs.sitename}}
-      shell: cmd
-    - name: Stop pool
-      run: c:\windows\system32\inetsrv\appcmd stop apppool ${{inputs.sitename}}
-      shell: cmd
+    - name: Inline
+      run: Write-Host 'Hello world'
+      shell: pwsh
     - name: Deploy to IIS
       run: xcopy d:\Drop\${{inputs.sourcefolder}}\*.* C:\inetpub\wwwroot\${{inputs.destfolder}} /E /Y /H /R
       shell: cmd
-    - name: Start pool
-      run: c:\windows\system32\inetsrv\appcmd start apppool ${{inputs.sitename}}
-      shell: cmd
-    - name: Start site
-      run: c:\windows\system32\inetsrv\appcmd start site ${{inputs.sitename}}
-      shell: cmd
-      
-    
