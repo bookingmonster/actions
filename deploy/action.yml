@@ -6,7 +6,7 @@ inputs:
     description: "folder under c:\\inetpub\\wwwroot"
     required: true
   sourcefolder:
-    description: "name of the sourcefolder undr c:\\drop"
+    description: "name of the sourcefolder undr d:\\Drop"
     required: true
 runs:
   using: "composite"
@@ -15,7 +15,7 @@ runs:
       run: echo . >  C:\inetpub\wwwroot\${{inputs.destfolder}}\app_offline.htm
       shell: cmd
     - name: Deploy to IIS
-      run: xcopy c:\drop\${{inputs.sourcefolder}}\*.* C:\inetpub\wwwroot\${{inputs.destfolder}} /E /Y /H /R
+      run: xcopy d:\Drop\${{inputs.sourcefolder}}\*.* C:\inetpub\wwwroot\${{inputs.destfolder}} /E /Y /H /R
       shell: cmd
     - name: Bring the app back online
       run: del C:\inetpub\wwwroot\${{inputs.destfolder}}\app_offline.htm
