@@ -8,16 +8,20 @@ inputs:
   sourcefolder:
     description: "name of the sourcefolder undr d:\\Drop"
     required: true
+  sitename:
+    description: "name of the site"
+    required: true
+    
 runs:
   using: "composite"
   steps:
     - name: Take application offline
-      run: echo . >  C:\inetpub\wwwroot\${{inputs.destfolder}}\app_offline.htm
+      run: appcmd stop apppool ${{inputs.sitename}}
       shell: cmd
     - name: Deploy to IIS
       run: xcopy d:\Drop\${{inputs.sourcefolder}}\*.* C:\inetpub\wwwroot\${{inputs.destfolder}} /E /Y /H /R
       shell: cmd
     - name: Bring the app back online
-      run: del C:\inetpub\wwwroot\${{inputs.destfolder}}\app_offline.htm
+      run: appcmd start apppool ${{inputs.sitename}}
       shell: cmd
     
