@@ -2,7 +2,7 @@ name: "Build and publish Dotnet 6"
 description: "Build and publish Dotnet 6 web apps"
 
 inputs:
-  sitename:
+  dropfolder:
     description: "sitename bijv. help.bookingmonser.nl"
     required: true
 runs:
@@ -24,4 +24,4 @@ runs:
     
   - name: dotnet publish
     shell: cmd
-    run: dotnet publish -c Release -o c:/drop/${{inputs.sitename}}
+    run: dotnet publish -c Release -o c:/drop/${{inputs.dropfolder}}
