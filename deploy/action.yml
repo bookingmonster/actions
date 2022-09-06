@@ -15,7 +15,7 @@ runs:
       run: echo . >  C:/inetpub/wwwroot/${{inputs.destfolder}}/app_offline.htm
       shell: cmd
     - name: Deploy to IIS
-      run: xcopy c:/drop/@{{inputs.sourcefolder}}/* C:/inetpub/wwwroot/${{inputs.destfolder}} /E /Y /H /R
+      run: xcopy c:/drop/${{inputs.sourcefolder}}/*.* C:/inetpub/wwwroot/${{inputs.destfolder}} /E /Y /H /R
       shell: cmd
     - name: Bring the app back online
       run: del C:/inetpub/wwwroot/${{inputs.destfolder}}/app_offline.htm
