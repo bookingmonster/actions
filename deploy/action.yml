@@ -6,7 +6,7 @@ inputs:
     description: "folder under c:\\inetpub\\wwwroot"
     required: true
   sourcefolder:
-    description: "name of the sourcefolder undr d:\\Drop"
+    description: "name of the sourcefolder under d:\\Drop"
     required: true
   sitename:
     description: "name of the site"
@@ -15,13 +15,20 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Take application offline
+    - name: Stop site
+      run: appcmd stop site ${{inputs.sitename}}
+      shell: cmd
+    - name: Stop pool
       run: appcmd stop apppool ${{inputs.sitename}}
       shell: cmd
     - name: Deploy to IIS
       run: xcopy d:\Drop\${{inputs.sourcefolder}}\*.* C:\inetpub\wwwroot\${{inputs.destfolder}} /E /Y /H /R
       shell: cmd
-    - name: Bring the app back online
+    - name: Start pool
       run: appcmd start apppool ${{inputs.sitename}}
       shell: cmd
+    - name: Start site
+      run: appcmd start site ${{inputs.sitename}}
+      shell: cmd
+      
     
