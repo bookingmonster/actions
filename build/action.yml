@@ -24,4 +24,4 @@ runs:
     
   - name: dotnet publish
     shell: cmd
-    run: dotnet publish -c Release -o c:/drop/${{inputs.dropfolder}}
+    run: dotnet publish -c Release -o d:/Drop/${{inputs.dropfolder}}
