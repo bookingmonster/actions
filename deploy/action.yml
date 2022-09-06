@@ -12,12 +12,12 @@ runs:
   using: "composite"
   steps:
     - name: Take application offline
-      run: New-Item -Type File -Name app_offline.htm -Path C:/inetpub/wwwroot/${{inputs.destfolder}} -Force
-      shell: pwsh
+      run: echo . >  C:/inetpub/wwwroot/${{inputs.destfolder}}/app_offline.htm
+      shell: cmd
     - name: Deploy to IIS
-      run: Copy-Item c:/drop/@{{inputs.sourcefolder}}/* C:/inetpub/wwwroot/${{inputs.destfolder}} -Recurse -Force
-      shell: pwsh
+      run: xcopy c:/drop/@{{inputs.sourcefolder}}/* C:/inetpub/wwwroot/${{inputs.destfolder}} /E /Y /H /R
+      shell: cmd
     - name: Bring the app back online
-      run: Remove-Item C:/inetpub/wwwroot/${{inputs.destfolder}}\app_offline.htm
-      shell: pwsh
+      run: del C:/inetpub/wwwroot/${{inputs.destfolder}}/app_offline.htm
+      shell: cmd
     
