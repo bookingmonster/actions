@@ -1,25 +1,145 @@
-name: "Build and publish Dotnet 6"
-description: "Build and publish Dotnet 6 web apps"
+# Builds a specified set of project files and publishes the application and its dependencies to an artifact for deployment to a hosting system.
 
-inputs:
-  dropfolder:
-    description: "sitename bijv. help.bookingmonser.nl"
-    required: true
-runs:
-  using: "composite"
-  steps:
-  - uses: actions/checkout@v3
-  - name: Setup .NET
-    uses: actions/setup-dotnet@v2
-    with:
-      dotnet-version: 6.0.x
-      
-  - name: Restore dependencies
-    shell: cmd
-    run: dotnet restore 
+name: .NET CLI
+
+on:
+  workflow_call:
+    inputs:
+      fetch_depth:
+        description: Number of commits to fetch. 0 indicates all history for all branches and tags.
+        required: false
+        type: number
+        default: 1
+      submodules:
+        description: 'Whether to checkout submodules: `true` to checkout submodules or `recursive` to recursively checkout submodules.'
+        required: false
+        type: string
+        default: false
+
+      solution:
+        description: The Visual Studio solution for which the packages should be build.
+        required: false
+        type: string
+      project_filter:
+        description: A list of glob patterns used for filtering the projects. Use '!' to negate.
+        required: false
+        type: string
+      configuration:
+        description: The build configuration to use when building the projects.
+        required: false
+        type: string
+        default: Release
+      build_args:
+        description: Extra arguments to be passed to the .NET CLI when building the projects.
+        required: false
+        type: string
+
+      use_nuget_cache:
+        description: Specifies whether to globally cache NuGet packages.
+        required: false
+        type: boolean
+        default: false
+      nuget_cache_key:
+        description: A pattern of files to include in the NuGet cache key hash. For example '**/packages.lock.json' or '**/*.csproj'.
+        required: false
+        type: string
+        default: '**/packages.lock.json'
+
+      artifact:
+        description: The name of the output 'publish' artifact.
+        required: true
+        type: string
+        default: publish
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+
+jobs:
+  main:
+    name: Publish
     
-  - name: Build
-    shell: cmd
-    run: dotnet build /nologo /p:PublishProfile=Release /p:PackageLocation="D:\Drop\${{inputs.dropfolder}}\Package" /p:OutDir="D:\Drop\${{inputs.dropfolder}}\Out" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release"
+    runs-on: ubuntu-latest
+
+    env:
+      SOLUTION: ${{ inputs.project_filter != '' && format('Solution.{0}.slnf', github.run_id) || inputs.solution }}
     
-  
+    steps:
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Prepare Scripts
+        run: |
+          git clone https://github.com/flobernd/workflows.git ../workflows
+          pip install -r ../workflows/scripts/requirements.txt
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: ${{ inputs.fetch_depth }}
+          submodules: ${{ inputs.submodules }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Cache NuGet Packages
+        if: inputs.use_nuget_cache == true
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles(inputs.nuget_cache_key) }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Generate Solution Filter
+        if: inputs.project_filter != ''
+        run: >
+          python ../workflows/scripts/solution_filter.py
+          --pattern "${{ inputs.project_filter }}"
+          --output "${{ env.SOLUTION }}"
+          "${{ inputs.solution }}"
+
+      - name: .NET Restore
+        run: >
+          dotnet restore
+          "${{ env.SOLUTION }}"
+
+      - name: .NET Publish
+        run: >
+          dotnet publish
+          "${{ env.SOLUTION }}"
+          --no-restore
+          ${{ inputs.configuration != '' && format('--configuration "{0}"', inputs.configuration) || '' }}
+          ${{ inputs.build_args != '' && inputs.build_args || '' }}
+          -p:ContinuousIntegrationBuild=true
+          -flp:"v=m;logfile=./publish.log"
+
+      - name: Create Publish Artifacts
+        run: |
+          bash << 'EOF'
+          mkdir ./publish
+          regex="^\s*(.+?)\s->\s(.+?publish)"
+          while IFS= read -r line
+          do
+              if [[ $line =~ $regex ]]
+              then
+                  name="${BASH_REMATCH[1]}"
+                  path="${BASH_REMATCH[2]}"
+                  echo "${name}"
+                  echo "${path}"
+                  (cd "$path" && zip -r - .) > "./publish/$name.zip"
+              fi
+          done < "./publish.log"
+          EOF
+
+      - name: Archive Publish Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact }}
+          path: ./publish
